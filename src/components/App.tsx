@@ -8,8 +8,10 @@ import CalendarTab from "./CalendarTab";
 import ClientsTab from "./ClientsTab";
 import PaymentsTab from "./PaymentsTab";
 import InsightsTab from "./InsightsTab";
+import OutreachTab, { type EmailAccount, type SentEmail } from "./OutreachTab";
 
-const TABS = ["Calendar", "Clients", "Payments", "Insights"] as const;
+const TABS = ["Calendar", "Clients", "Payments", "Outreach", "Insights"] as const;
+const EMAIL_KEY = "plowline.email";
 type Tab = (typeof TABS)[number];
 
 export type Actions = {
@@ -39,6 +41,25 @@ function Workspace() {
   });
   const [data, setData] = useState<Data>(() => buildDemo(today));
   const [tab, setTab] = useState<Tab>("Calendar");
+  const [email, setEmailState] = useState<EmailAccount | null>(() => {
+    try {
+      const raw = localStorage.getItem(EMAIL_KEY);
+      return raw ? (JSON.parse(raw) as EmailAccount) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [sent, setSent] = useState<SentEmail[]>([]);
+
+  const setEmail = (e: EmailAccount | null) => {
+    setEmailState(e);
+    try {
+      if (e) localStorage.setItem(EMAIL_KEY, JSON.stringify(e));
+      else localStorage.removeItem(EMAIL_KEY);
+    } catch {
+      // storage unavailable (private window): connection just won't persist
+    }
+  };
 
   const todayIso = iso(today);
   const uid = () => Math.random().toString(36).slice(2, 9);
@@ -96,6 +117,26 @@ function Workspace() {
         {tab === "Calendar" && <CalendarTab data={data} today={today} actions={actions} />}
         {tab === "Clients" && <ClientsTab data={data} actions={actions} />}
         {tab === "Payments" && <PaymentsTab data={data} today={today} actions={actions} />}
+        {tab === "Outreach" && (
+          <OutreachTab
+            data={data}
+            email={email}
+            setEmail={setEmail}
+            sent={sent}
+            onSend={(inv, to) =>
+              setSent((s) => [
+                {
+                  id: uid(),
+                  invoiceId: inv.id,
+                  clientId: inv.clientId,
+                  to,
+                  at: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+                },
+                ...s,
+              ])
+            }
+          />
+        )}
         {tab === "Insights" && <InsightsTab data={data} today={today} />}
       </main>
     </div>
