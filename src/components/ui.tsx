@@ -60,3 +60,40 @@ export function Field({ label, children }: { label: string; children: ReactNode 
     </label>
   );
 }
+
+export function Toggle({
+  checked,
+  onChange,
+  label,
+  hint,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+  hint?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-6 py-4">
+      <div>
+        <div className="text-sm font-medium">{label}</div>
+        {hint && <div className="mt-0.5 text-sm text-muted">{hint}</div>}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full border transition-colors ${
+          checked ? "border-black bg-black" : "border-line bg-soft"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full transition-all ${
+            checked ? "left-[22px] bg-white" : "left-0.5 bg-neutral-400"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}

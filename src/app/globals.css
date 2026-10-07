@@ -6,6 +6,25 @@
   --muted: #6b6b6b;
   --line: #e4e4e4;
   --soft: #f5f5f5;
+  --head: #e3e3e3;
+}
+
+/* Dark mode: swap the base colors. Everything built from white/black/neutral utilities follows. */
+:root[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --muted: #9b9b9b;
+  --line: #2a2a2a;
+  --soft: #161616;
+  --head: #242424;
+  --color-white: #0a0a0a;
+  --color-black: #ffffff;
+  --color-neutral-400: #6f6f6f;
+  --color-neutral-500: #8a8a8a;
+  --color-neutral-600: #a8a8a8;
+  --color-neutral-700: #c4c4c4;
+  --color-neutral-800: #d6d6d6;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -14,6 +33,7 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-soft: var(--soft);
+  --color-head: var(--head);
   --font-sans: ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
 }
 
@@ -29,6 +49,6 @@ body {
 }
 
 ::selection {
-  background: #000;
-  color: #fff;
+  background: var(--foreground);
+  color: var(--background);
 }

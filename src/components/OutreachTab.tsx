@@ -3,35 +3,44 @@
 import { useState } from "react";
 import type { Client, Data, Invoice } from "@/lib/types";
 import { fmtDay, money } from "@/lib/dates";
+import type { Settings } from "@/lib/settings";
 import { Badge, Btn, Card, Field, inputCls } from "./ui";
 
 export type EmailAccount = { provider: "Gmail" | "Outlook" | "Other"; address: string };
 export type SentEmail = { id: string; invoiceId: string; clientId: string; to: string; at: string };
 
-const BUSINESS = "Northern Edge Snow Services";
+const subjectFor = (inv: Invoice, business: string) => `Invoice ${inv.id} from ${business}`;
 
-const subjectFor = (inv: Invoice) => `Invoice ${inv.id} from ${BUSINESS}`;
-const bodyFor = (c: Client, inv: Invoice) =>
-  `Hi ${c.name},\n\nThank you for choosing ${BUSINESS}. Your invoice ${inv.id} for ${money(inv.amount)} is ready.\n\nIssued: ${fmtDay(inv.issued)}\nDue: ${fmtDay(inv.due)}\n\nPlease let us know if you have any questions.\n\nThank you,\n${BUSINESS}`;
+const bodyFor = (c: Client, inv: Invoice, st: Settings) => {
+  const pay = st.paymentMethods.length
+    ? `\n\nWays to pay:\n${st.paymentMethods
+        .map((p) => `- ${p.kind === p.label ? p.kind : `${p.label} (${p.kind})`}: ${p.detail}${p.isDefault ? " (preferred)" : ""}`)
+        .join("\n")}`
+    : "";
+  const footer = st.invoicing.footer.trim() ? `\n\n${st.invoicing.footer.trim()}` : "";
+  return `Hi ${c.name},\n\nThank you for choosing ${st.business.name}. Your invoice ${inv.id} for ${money(inv.amount)} is ready.\n\nIssued: ${fmtDay(inv.issued)}\nDue: ${fmtDay(inv.due)}${pay}${footer}\n\nThank you,\n${st.business.name}\n${st.business.phone}`;
+};
 
 export default function OutreachTab({
   data,
   email,
   setEmail,
   sent,
+  settings,
   onSend,
 }: {
   data: Data;
   email: EmailAccount | null;
   setEmail: (e: EmailAccount | null) => void;
   sent: SentEmail[];
+  settings: Settings;
   onSend: (inv: Invoice, to: string) => void;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [composing, setComposing] = useState<string | null>(null);
   const [body, setBody] = useState("");
   const [provider, setProvider] = useState<EmailAccount["provider"]>("Gmail");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(settings.owner.email);
 
   const openInvoices = (cid: string) => data.invoices.filter((i) => i.clientId === cid && !i.paid);
   const wasSent = (invId: string) => sent.some((s) => s.invoiceId === invId);
@@ -97,7 +106,7 @@ export default function OutreachTab({
                                     className="!px-3 !py-1 !text-xs"
                                     onClick={() => {
                                       setComposing(composing === inv.id ? null : inv.id);
-                                      setBody(bodyFor(c, inv));
+                                      setBody(bodyFor(c, inv, settings));
                                     }}
                                   >
                                     {composing === inv.id ? "Close" : wasSent(inv.id) ? "Resend" : "Send invoice"}
@@ -109,7 +118,7 @@ export default function OutreachTab({
                                 <div className="mt-3 space-y-3 border-t border-line pt-3">
                                   <div className="text-xs text-muted">
                                     To: <span className="text-black">{c.email}</span> · Subject:{" "}
-                                    <span className="text-black">{subjectFor(inv)}</span>
+                                    <span className="text-black">{subjectFor(inv, settings.business.name)}</span>
                                   </div>
                                   <textarea
                                     className={`${inputCls} h-44 font-sans`}
@@ -128,7 +137,7 @@ export default function OutreachTab({
                                     </Btn>
                                     <a
                                       className="rounded-lg border border-line px-4 py-2 text-sm font-medium hover:border-black"
-                                      href={`mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent(subjectFor(inv))}&body=${encodeURIComponent(body)}`}
+                                      href={`mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent(subjectFor(inv, settings.business.name))}&body=${encodeURIComponent(body)}`}
                                     >
                                       Open in my email app
                                     </a>

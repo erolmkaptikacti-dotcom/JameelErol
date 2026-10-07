@@ -45,7 +45,7 @@ export default function CalendarTab({ data, today, actions }: { data: Data; toda
         </div>
         <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-line bg-line">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="bg-[#e3e3e3] py-2 text-center text-xs uppercase tracking-widest text-neutral-600">{d}</div>
+            <div key={d} className="bg-head py-2 text-center text-xs uppercase tracking-widest text-neutral-600">{d}</div>
           ))}
           {days.map((d) => {
             const key = iso(d);
