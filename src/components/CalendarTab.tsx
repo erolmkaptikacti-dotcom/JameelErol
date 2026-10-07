@@ -6,6 +6,9 @@ import { addDays, fmtTime, iso, parse } from "@/lib/dates";
 import type { Actions } from "./App";
 import { Badge, Btn, Card, Field, inputCls } from "./ui";
 
+// Neon green, orange, pink: client names on a day cycle through these.
+const HIGHLIGHTS = ["bg-[#39ff14]", "bg-[#ff9500]", "bg-[#ff2d95]"];
+
 export default function CalendarTab({ data, today, actions }: { data: Data; today: Date; actions: Actions }) {
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState(iso(today));
@@ -14,13 +17,17 @@ export default function CalendarTab({ data, today, actions }: { data: Data; toda
 
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const start = addDays(first, -first.getDay());
-  const days = Array.from({ length: 42 }, (_, i) => addDays(start, i));
-  const byDate = (d: string) => data.jobs.filter((j) => j.date === d && j.status !== "cancelled");
+  // Only as many weeks as the month needs (no trailing row of next-month days).
+  const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+  const weeks = Math.ceil((first.getDay() + daysInMonth) / 7);
+  const days = Array.from({ length: weeks * 7 }, (_, i) => addDays(start, i));
+  const byDate = (d: string) =>
+    data.jobs.filter((j) => j.date === d && j.status !== "cancelled").sort((a, b) => a.time.localeCompare(b.time));
   const clientName = (id: string) => data.clients.find((c) => c.id === id)?.name ?? "Unknown";
   const dayJobs = data.jobs.filter((j) => j.date === selected).sort((a, b) => a.time.localeCompare(b.time));
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <Card className="p-5">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight">
@@ -46,14 +53,22 @@ export default function CalendarTab({ data, today, actions }: { data: Data; toda
               <button
                 key={key}
                 onClick={() => setSelected(key)}
-                className={`h-20 cursor-pointer p-2 text-left align-top transition-colors ${
+                className={`flex min-h-32 cursor-pointer flex-col items-stretch justify-start p-2 text-left transition-colors ${
                   isSel ? "bg-black text-white" : inMonth ? "bg-white hover:bg-soft" : "bg-soft text-neutral-400"
                 }`}
               >
                 <div className={`text-sm ${isToday && !isSel ? "font-bold underline underline-offset-4" : ""}`}>{d.getDate()}</div>
                 {jobs.length > 0 && (
-                  <div className={`mt-1 text-xs ${isSel ? "text-neutral-300" : "text-muted"}`}>
-                    {jobs.length} job{jobs.length > 1 ? "s" : ""}
+                  <div className="mt-1.5 flex flex-col gap-1">
+                    {jobs.map((j, idx) => (
+                      <span
+                        key={j.id}
+                        title={`${clientName(j.clientId)} · ${fmtTime(j.time)}`}
+                        className={`block rounded px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-black ${HIGHLIGHTS[idx % HIGHLIGHTS.length]}`}
+                      >
+                        {clientName(j.clientId)}
+                      </span>
+                    ))}
                   </div>
                 )}
               </button>

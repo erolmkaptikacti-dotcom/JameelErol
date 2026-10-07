@@ -68,7 +68,7 @@ function Workspace() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 pb-20">
+    <div className="mx-auto w-full max-w-7xl px-5 pb-20">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line py-6">
         <div className="flex items-center gap-3">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-black text-lg text-white">❄</div>
