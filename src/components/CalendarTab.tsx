@@ -7,7 +7,11 @@ import type { Actions } from "./App";
 import { Badge, Btn, Card, Field, inputCls } from "./ui";
 
 // Neon green, orange, pink: client names on a day cycle through these.
-const HIGHLIGHTS = ["bg-[#39ff14]", "bg-[#ff9500]", "bg-[#ff2d95]"];
+const HIGHLIGHTS = [
+  "bg-[#39ff14]/25 border-[#39ff14]/70",
+  "bg-[#ff9500]/25 border-[#ff9500]/70",
+  "bg-[#ff2d95]/25 border-[#ff2d95]/70",
+];
 
 export default function CalendarTab({ data, today, actions }: { data: Data; today: Date; actions: Actions }) {
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -54,7 +58,11 @@ export default function CalendarTab({ data, today, actions }: { data: Data; toda
                 key={key}
                 onClick={() => setSelected(key)}
                 className={`flex min-h-32 cursor-pointer flex-col items-stretch justify-start p-2 text-left transition-colors ${
-                  isSel ? "bg-black text-white" : inMonth ? "bg-white hover:bg-soft" : "bg-soft text-neutral-400"
+                  isSel
+                    ? "bg-white outline-2 -outline-offset-2 outline-black"
+                    : inMonth
+                      ? "bg-white hover:bg-soft"
+                      : "bg-soft text-neutral-400"
                 }`}
               >
                 <div className={`text-sm ${isToday && !isSel ? "font-bold underline underline-offset-4" : ""}`}>{d.getDate()}</div>
@@ -64,7 +72,7 @@ export default function CalendarTab({ data, today, actions }: { data: Data; toda
                       <span
                         key={j.id}
                         title={`${clientName(j.clientId)} · ${fmtTime(j.time)}`}
-                        className={`block rounded px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-black ${HIGHLIGHTS[idx % HIGHLIGHTS.length]}`}
+                        className={`block border px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-black ${HIGHLIGHTS[idx % HIGHLIGHTS.length]}`}
                       >
                         {clientName(j.clientId)}
                       </span>
